@@ -1,0 +1,58 @@
+---
+title: Routing & Types
+description: Details about Runegraft route syntax, positional argument parsing, and built-in type converters.
+---
+
+Runegraft borrows the idea of declarative "routes" from HTTP frameworks: a single string describes the command name and positional arguments. The parser for these strings lives in `parser.py` (`parse_route`, `ArgSpec`, `Route`).
+
+## Route syntax
+
+```
+"command <required:type> [optional:type]"
+```
+
+- Tokens wrapped in `<>` are required; `[]` makes the argument optional.
+- If no type is provided (`<name>` or `[name]`), the parser defaults to `str`.
+- Whitespace separates tokens; put multi-word help text in docstrings instead.
+
+Examples:
+
+```python
+@cli.command("add <a:int> <b:int>")
+@cli.command("spinner [seconds:float]")
+@cli.command("fetch <target:path> [retries:int]")
+```
+
+## Type resolution pipeline
+
+When a command runs, Runegraft follows this order:
+
+1. **Custom route types** registered via `CLI.type("name")` take precedence.
+2. **Built-in converters** from `types.BUILTIN_TYPES` handle known tokens such as `int`, `url`, or `json`.
+3. If no route token is found, the function's **type hints** decide how to coerce option values. For example, an option annotated as `Path` uses `type_name_for_py()` to map to the `path` converter.
+4. When none of the above apply, the raw string value is passed through.
+
+Any `ValueError` or `TypeErrorValue` raised during conversion is surfaced to the user as a friendly error message.
+
+## Built-in converters
+
+| Token | Converts to | Notes |
+| --- | --- | --- |
+| `str`, `string`, `text` | `str` | No transformation beyond trimming quotes. |
+| `int` | `int` | Raises if the input is not numeric. |
+| `float` | `float` | Accepts decimal input. |
+| `bool` | `bool` | Handles values like `true/false`, `yes/no`, `1/0`. |
+| `path` | `pathlib.Path` | Expands `~` on load. |
+| `url` | `str` | Requires a scheme; enforces host unless `file://`. |
+| `json` | `Any` | Parses JSON strings into Python objects. |
+| `uuid` | `uuid.UUID` | Validates canonical UUID text. |
+| `date` | `datetime.date` | ISO `YYYY-MM-DD`. |
+| `datetime` | `datetime.datetime` | ISO 8601 timestamp. |
+
+Because these live in `runegraft.types`, you can import `BUILTIN_TYPES` and extend or override entries before wiring CLI commands if necessary.
+
+## Usage strings and help
+
+The `usage_for_route` helper composes readable usage strings (`install <url:url> [target:path] [--force]`). These strings end up in the help table and are also used by the shell validator to offer precise error messages while the user types.
+
+If you add new option converters or custom route tokens, the `type_name_for_py` helper ensures that help text reflects the human-friendly token name rather than the internal Python class.

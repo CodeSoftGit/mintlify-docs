@@ -1,0 +1,69 @@
+---
+title: Testing Your CLI
+description: Practical strategies for verifying Runegraft commands without relying on manual shell sessions.
+---
+
+Because Runegraft wraps plain Python callables, you can test command behavior with any framework (pytest, unittest, nose, etc.). This guide covers three layers: testing the underlying functions, invoking the CLI programmatically, and validating parsing logic.
+
+## Test the business logic directly
+
+Every command is just a function, so unit tests can bypass the CLI entirely:
+
+```python
+def test_add_command(cli):
+    result = cli._commands["add"].func(2, 3)
+    assert result is None
+```
+
+In pytest, create a fixture that returns the CLI from `build_demo_cli()` or your custom builder. This keeps failure messages focused on your own logic, not argument parsing.
+
+## Invoke commands via `CLI.run`
+
+When you need to exercise parsing, use the public API instead of `subprocess`:
+
+```python
+def test_echo_upper(cli, monkeypatch):
+    output = []
+    monkeypatch.setattr(cli.ui.console, "print", lambda msg: output.append(msg))
+
+    exit_code = cli.run(argv=["echo", "hello", "--upper"])
+
+    assert exit_code == 0 or exit_code is None
+    assert output == ["HELLO"]
+```
+
+- Pass `argv` to avoid mutating `sys.argv`.
+- Capture console output by monkeypatching `cli.ui.console.print` or by injecting a Rich console backed by `io.StringIO`.
+
+## Call `CLI.invoke` for targeted scenarios
+
+`CLI.invoke(["cmd", ...])` expects the command tokens (without program name). This is useful when you already parsed or constructed arguments elsewhere and only want to execute the decorated function.
+
+```python
+def test_spinner_default(cli):
+    cli.invoke(["spinner"])
+```
+
+## Validate parsing errors
+
+`CLI.parse_for_invoke` exposes the same validation logic used by the shell. You can assert that incorrect input produces helpful errors:
+
+```python
+import pytest
+from runegraft.cli import CLIError
+
+def test_missing_argument_message(cli):
+    with pytest.raises(CLIError) as exc:
+        cli.invoke(["add", "1"])
+    assert "Missing required args" in str(exc.value)
+```
+
+## Testing the shell loop
+
+`Shell` integrates with `prompt_toolkit`, which is hard to run in headless tests. Instead of simulating keystrokes, focus on:
+
+- `cli.parse_for_invoke` for validation.
+- `Shell._build_completer()` if you extend the class and want to ensure your nested dictionary is correct.
+- Helper modules such as `builtins.AliasStore` for alias expansion.
+
+The combination of direct function tests plus `CLI.run(argv=...)` gives you confidence without spinning up a subprocess or an interactive session.

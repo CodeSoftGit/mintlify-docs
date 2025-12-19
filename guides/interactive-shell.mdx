@@ -1,0 +1,48 @@
+---
+title: The Interactive Shell
+description: Learn how the Runegraft REPL behaves, what features it provides, and how to customize the experience.
+---
+
+Runegraft bundles a prompt_toolkit shell so you can experiment with commands before wiring them into scripts. Launch it with `python -m runegraft` (or call `CLI.shell()` from your own app) and you'll see a prompt such as `runegraft>`.
+
+## Completion & validation
+
+- **Fuzzy tab completion**: type `sp` and press <kbd>Tab</kbd> to match `spinner`; flags and short options are suggested after the command name.
+- **Autosuggestions**: past input surfaces inline hints (fish shell style) that you can accept with the right arrow key.
+- **Live validation**: Runegraft parses arguments as you type. You'll see inline error messages when a required arg is missing or an option value has the wrong type.
+
+```text
+runegraft> add 2
+Missing required args: b
+```
+
+## Persistent history
+
+Command history lives under `~/.runegraft/history/<cli-name>.txt`, so each CLI gets its own timeline. Run `history show` in the shell to display the latest entries or `history clear` to truncate the file.
+
+## Built-in helpers
+
+| Command | Description |
+| --- | --- |
+| `help` / `?` | Print the structured help table (same output as `CLI.print_help`). |
+| `exit`, `quit`, `q` | Leave the shell. |
+| `clear` | Clear the terminal without leaving the session (`Ctrl+L` works too). |
+| `alias` | Manage simple aliases (`alias set ll "list --long"`). |
+| `history` | Show or clear recorded commands. |
+| `!` | Run the rest of the line as a system command without leaving the shell. |
+
+## Aliases
+
+Aliases let you map short names to longer command strings. Because alias expansion only touches the first token, options remain intact:
+
+```text
+runegraft> alias set s spinner 0.5
+Alias set: s -> spinner 0.5
+runegraft> s
+```
+
+They live in-memory for the current session, so add your favorites in project-specific helper scripts if you want persistence.
+
+## Embedding the shell
+
+When you call `CLI(shell_name).shell()` inside your own program, the class automatically constructs the history path, prompt text, and completer tree from registered commands. No additional configuration is necessary unless you want to subclass `Shell` for deeper customization.

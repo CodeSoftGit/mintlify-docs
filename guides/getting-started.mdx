@@ -1,0 +1,52 @@
+---
+title: Getting Started
+description: Install Runegraft locally, explore the demo CLI, and understand the basic project layout.
+---
+
+Runegraft ships as a lightweight Python package that you run directly with `python -m runegraft`. The project root already contains a working demo CLI so you can see its features before building your own commands.
+
+## Installation
+
+```bash
+git clone https://example.invalid/runegraft.git
+cd runegraft
+uv sync  # or: python -m pip install -e .
+```
+
+The `uv` step installs both runtime and dev dependencies defined in `pyproject.toml`. If you skip editable mode, tweak commands with `python -m pip install .`.
+
+## Running the demo CLI
+
+```bash
+python -m runegraft
+```
+
+This launches the interactive shell with fuzzy completion, autosuggestions, and persistent history. Try a few commands:
+
+```text
+runegraft> help
+runegraft> add 2 5
+runegraft> echo "hi there" --upper
+runegraft> spinner 1.5
+```
+
+The same commands run outside the shell via `python -m runegraft <command> ...` when you want automation-friendly invocations.
+
+## Project layout
+
+```
+src/runegraft/
+├── __main__.py   # wires the demo CLI together
+├── cli.py        # core CLI object, decorator, parsing
+├── parser.py     # route parsing + option inspection
+├── shell.py      # prompt_toolkit-powered REPL
+├── builtins.py   # aliases, history helpers
+└── types.py      # built-in converters (int, url, json…)
+```
+
+Your own CLIs typically live next to `__main__.py`. You can copy `build_demo_cli()` into another module, register your commands, and keep the rest of the framework untouched.
+
+## Next steps
+
+- Head over to [The Interactive Shell](../guides/interactive-shell.mdx) for shortcuts, history management, and alias tips.
+- When you're ready to add commands, read the [CLI API reference](../reference/cli-api.mdx) and [Routing & Types guide](../reference/routing-and-types.mdx).

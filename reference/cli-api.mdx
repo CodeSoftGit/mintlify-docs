@@ -1,0 +1,86 @@
+---
+title: CLI API
+description: Reference for the `CLI` object, decorators, and helper utilities exposed by Runegraft.
+---
+
+Runegraft centers on a single `CLI` instance defined in `src/runegraft/cli.py`. Use it to register commands, options, and root behavior; then hand off execution to `CLI.run()`.
+
+## Constructing a CLI
+
+```python
+from runegraft import cli
+
+app = cli.CLI(name="forge", description="Package builder")
+```
+
+Parameters:
+
+- `name`: controls how usage is rendered and becomes the default shell prompt (`forge>`).
+- `description`: printed at the top of `help` output.
+
+The object also exposes `ui.console`, a Rich console configured with pretty tracebacks (see `formatting.make_ui`).
+
+## Registering commands
+
+```python
+@app.command("install <url:url> [target:path]")
+def install(url: str, target: Path | None = None):
+    """Download and stage a package."""
+    ...
+```
+
+- Route strings are parsed by `parse_route` and enforce positional types; an error is raised at startup if a reserved shell command name is reused.
+- The first line of the docstring becomes the summary column in `help`.
+- All function annotations are available during parsing, so you can combine route tokens and type hints (e.g., type hints drive option coercion).
+
+Use `@app.root` to specify what runs when `python -m runegraft` is invoked with no arguments. Returning `app.shell()` matches the demo behavior, but you could launch a default command or print a welcome message.
+
+## Options and flags
+
+Options are inferred from function parameters that are **not** present in the route:
+
+```python
+@app.command("ship <pkg:str>")
+def ship(pkg: str, dry_run: bool = False, retries: int = 1):
+    ...
+```
+
+- `dry_run` automatically becomes `--dry-run` and, because it is typed as `bool`, behaves like a flag (`--dry-run` sets the value to `True`).
+- Non-bool parameters expect a value: `--retries 3`.
+- Defaults come from the function signature; use `runegraft.cli.option` to override the long/short flag names or add help text.
+
+```python
+from runegraft.cli import option
+
+@app.command("echo <text:str>")
+def echo(
+    text: str,
+    upper: bool = option("--upper", "-U", default=False, help="Uppercase output", is_flag=True),
+):
+    ...
+```
+
+## Custom converters
+
+Route tokens (`<name:type>`) map to converters defined in `types.BUILTIN_TYPES`. Register your own via `CLI.type`:
+
+```python
+@app.type("semver")
+def parse_semver(raw: str) -> tuple[int, int, int]:
+    ...
+
+@app.command("bump <version:semver>")
+def bump(version):
+    ...
+```
+
+If validation fails, raise any exception and it will be surfaced as a `CLIError` with a nice message both in the shell and non-interactive mode.
+
+## Execution helpers
+
+- `CLI.run(argv: Optional[List[str]])`: dispatch arguments (or `sys.argv[1:]` by default). Automatically handles `--help` and empty input.
+- `CLI.invoke(tokens: List[str])`: run one command when you already parsed the leading command name.
+- `CLI.shell()`: construct and run the interactive loop from `shell.py`.
+- `CLI.print_help()`: render the Rich table shown in the shell.
+
+The parser raises `CLIError` for user-facing issues; let them bubble up so Rich can colorize the message. Only catch them for custom error handling or to translate into exit codes.

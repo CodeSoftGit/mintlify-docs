@@ -1,0 +1,105 @@
+---
+title: Building Commands
+description: Step-by-step walkthrough for defining your own Runegraft commands, options, and entry point.
+---
+
+This guide builds a miniature package manager CLI to demonstrate the features exposed by `runegraft.cli`. By the end you'll have a fully interactive shell plus automation-friendly commands.
+
+## 1. Create the CLI object
+
+```python
+from runegraft.cli import CLI
+
+cli = CLI(name="forge", description="Package forge demo")
+```
+
+The `name` sets the shell prompt (`forge>`) and prefixes the help table. Use the `description` to display a sentence at the top of `help` output.
+
+## 2. Choose a root behavior
+
+Decide what should happen when the CLI is launched with no arguments. Most projects keep the built-in shell:
+
+```python
+@cli.root
+def _root():
+    return cli.shell()
+```
+
+You can do anything here: run a default command, print status, or open a TUI dashboard.
+
+## 3. Register commands with routes
+
+```python
+@cli.command("install <url:url> [target:path]")
+def install(url: str, target=None):
+    """Download a package and stage it locally."""
+    cli.ui.console.print(f"Fetching {url} -> {target or 'cache'}")
+```
+
+- `<name:type>` tokens ensure positional arguments are parsed and validated up front.
+- Optional arguments live in `[brackets]` and default to `None`.
+- The first line of the docstring becomes the help summary.
+
+## 4. Add options and flags
+
+Any parameter not in the route automatically becomes an option:
+
+```python
+from runegraft.cli import option
+
+@cli.command("publish <artifact:path>")
+def publish(
+    artifact,
+    dry_run: bool = False,
+    retries: int = option("--retries", "-r", default=1, help="Retry count"),
+):
+    ...
+```
+
+- `dry_run` is inferred as a flag because of the `bool` annotation.
+- `retries` uses the explicit `option` helper to set short/long names and help text.
+
+Options support every type listed in [Routing & Types](../reference/routing-and-types.mdx), including custom converters.
+
+## 5. Register custom types
+
+Some domains need more than `int` or `path`. Use `cli.type()` to register your own transformer:
+
+```python
+@cli.type("semver")
+def parse_semver(raw: str):
+    major, minor, patch = (int(part) for part in raw.split("."))
+    return major, minor, patch
+
+@cli.command("bump <version:semver>")
+def bump(version):
+    ...
+```
+
+Whenever `<version:semver>` appears in a route, Runegraft will call `parse_semver`.
+
+## 6. Wire up `__main__`
+
+Finally, expose a `main()` that builds the CLI and calls `run`:
+
+```python
+def build_cli() -> CLI:
+    cli = CLI(name="forge", description="Package forge demo")
+
+    @cli.root
+    def _root():
+        return cli.shell()
+
+    # register commands here...
+    return cli
+
+def main(argv=None) -> int:
+    app = build_cli()
+    try:
+        result = app.run(argv=argv)
+        return 0 if result is None else int(result)
+    except SystemExit as exc:
+        return int(exc.code or 0)
+```
+
+Now `python -m runegraft` launches the shell, while `python -m runegraft install https://…` works in scripts. Package the module with `project.scripts` to ship a standalone `runegraft` binary.

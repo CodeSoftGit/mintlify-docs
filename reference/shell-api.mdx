@@ -1,0 +1,80 @@
+---
+title: Shell API
+description: Deep dive into the prompt_toolkit-based shell implementation and customization points.
+---
+
+The Runegraft shell (`src/runegraft/shell.py`) wraps prompt_toolkit to provide completion, validation, aliases, and history. This reference documents the available classes so you can extend or embed the shell in other programs.
+
+## `ShellConfig`
+
+```python
+@dataclass
+class ShellConfig:
+    history_path: Path
+    prompt: str
+```
+
+- `history_path`: file storing the persistent command history (`~/.runegraft/history/<prog>.txt` by default). The parent directory is created automatically.
+- `prompt`: string displayed before each line (e.g., `runegraft> `).
+
+`CLI.shell()` constructs this config automatically, but you can pass a custom one if you instantiate `Shell` yourself.
+
+## `Shell`
+
+```python
+shell = Shell(cli, ShellConfig(history_path=..., prompt="forge> "))
+shell.run()
+```
+
+Key responsibilities:
+
+- Builds a nested fuzzy completer from registered commands and shell built-ins (`help`, `history`, `alias`, etc.).
+- Validates input before execution by calling `CLI.parse_for_invoke`.
+- Dispatches reserved words (`exit`, `help`, `history`, `alias`, `clear`, `!` system escape).
+- Maintains an `AliasStore` for simple token substitutions.
+
+`Shell.run()` prints a header, then loops forever until the user exits via Ctrl+D, Ctrl+C, `exit`, or `quit`. It returns `0`, and any errors during completion/validation are displayed using the CLI's Rich console.
+
+### Customizing behavior
+
+Subclass `Shell` when you need to adjust bindings or completions:
+
+```python
+from runegraft.shell import Shell
+
+class MyShell(Shell):
+    def _build_completer(self):
+        completer = super()._build_completer()
+        # mutate completer.tree or wrap with another prompt_toolkit completer
+        return completer
+```
+
+- Override `_validate_line` to change how input is pre-validated.
+- Patch the key bindings (e.g., add custom shortcuts) by overriding `run()` and modifying the `KeyBindings` object before calling `PromptSession`.
+
+## Alias helpers
+
+`runegraft.builtins` exposes utilities used by the shell:
+
+- `AliasStore`: simple dataclass containing a mapping of alias names to replacement text.
+- `expand_alias(store, line)`: replaces the first token when it matches an alias.
+- `clear_screen()`: cross-platform clear helper triggered by `Ctrl+L` or the `clear` command.
+
+You can reuse these utilities outside the shell—for example, to apply alias logic in non-interactive contexts.
+
+## Built-in commands
+
+The shell reserves several names and prevents you from registering conflicting commands:
+
+- `help`, `?`
+- `exit`, `quit`, `q`
+- `history`
+- `clear`
+- `alias`
+- `!` (system escape)
+
+If you try to decorate a command with one of these names, `CLI.command` raises `CLIError`. Use aliases if you need shortcuts that mimic these behaviors.
+
+## Error handling
+
+All exceptions raised by command functions or parsing are caught and printed using `cli.ui.console.print("[red]Error:[/red] …")`. When you throw `CLIError` from custom validation code, the message surfaces directly in the shell and in non-interactive mode, so keep them concise and user-friendly.
