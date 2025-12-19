@@ -1,0 +1,60 @@
+---
+title: "Recipes"
+description: "Practical patterns for real-world CLIs built with Runegraft."
+keywords: ["runegraft recipes", "python cli examples", "cli patterns", "real world cli", "runegraft snippets"]
+sidebarTitle: "Recipes"
+---
+
+Use these snippets as starting points. Copy, adjust, and ship.
+
+## Installer-style command
+
+```python
+from runegraft import CLI, opt
+
+cli = CLI("installr")
+
+@cli.command("install <url:url>")
+def install(
+    url: str,
+    force: bool = opt("--force", "-f", default=False, help="Overwrite existing installs"),
+    target: str = opt("--target", "-t", default="~/.installr", help="Install directory"),
+):
+    print(f"Installing {url} into {target} (force={force})")
+```
+
+- The `<url:url>` converter validates the input before running.
+- `--force` + `--target` make the command discoverable via generated help.
+
+## Git-style subcommands
+
+```python
+@cli.command("task add <name:str>")
+def task_add(name: str):
+    print(f"Added task '{name}'")
+
+@cli.command("task list")
+def task_list():
+    print("Listing tasks...")
+```
+
+Route prefixes (`task add`, `task list`) keep related commands grouped in the shell and in help output.
+
+## Script repeatable workflows
+
+Drop frequently used commands into a `.rg` file and run it with `source` inside the shell:
+
+```text
+# team-setup.rg
+install https://example.com/pkg.zip -f
+alias set deploy-prod "deploy production --region us-east-1"
+history save
+```
+
+In the shell:
+
+```bash
+runegraft> source ./team-setup.rg
+```
+
+Everyone on your team can share the same scripts to bootstrap their environment in one command.

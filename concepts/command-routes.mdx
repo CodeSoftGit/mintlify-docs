@@ -1,0 +1,49 @@
+---
+title: "Command Routes"
+description: "Define CLI routes with typed arguments, friendly errors, and clean parsing."
+keywords: ["runegraft command routes", "python cli routing", "typed cli arguments", "flask style cli", "runegraft patterns"]
+sidebarTitle: "Command Routes"
+---
+
+Runegraft uses **route-style strings** to define commands, similar to Flask or FastAPI but for CLIs. Routes stay readable, and they double as your help text.
+
+## Defining routes
+
+Use `@cli.command("<pattern>")` with typed parameters that match the placeholders in your pattern:
+
+```python
+from runegraft import CLI, opt
+
+cli = CLI("demo")
+
+@cli.command("install <url:url>")
+def install(url: str, force: bool = opt("--force", "-f", default=False, help="Overwrite existing install")):
+    print(f"Installing from {url} (force={force})")
+
+@cli.command("config set <key:str> <value:str>")
+def set_config(key: str, value: str):
+    print(f"Saved {key}={value}")
+
+@cli.command("config get <key:str>")
+def get_config(key: str):
+    print(f"Fetching {key}...")
+```
+
+The `<type:name>` placeholders describe both the argument type and the name passed into your function. Missing or malformed args produce clear, typed errors automatically.
+
+## Typing and validation
+
+- Built-in converters include `str`, `int`, `bool`, `float`, `url`, `uuid`, and `json`.
+- Convert user input before your function runs, so you only handle validated Python types.
+- Custom converters are easy—see [Type Converters](/concepts/types).
+
+## Root vs. subcommands
+
+- `@cli.root` handles `runegraft` with no args (perfect for launching the shell).
+- Routes can nest to mimic subcommands: `config set` and `config get` share the `config` prefix but map to different functions.
+
+## Helpful output for free
+
+- Help text is generated from your route strings and docstrings.
+- Missing/extra argument errors are formatted automatically and show expected types and options.
+- Combine with [Options & Flags](/concepts/options) to offer defaults, choices, and aliases without hand-writing parsers.

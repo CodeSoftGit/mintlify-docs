@@ -1,97 +1,87 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Runegraft"
+description: "The most customizable, beautiful, simple CLI framework."
+sidebarTitle: "Introduction"
+icon: "sparkles"
+mode: "wide"
+keywords: ["python", "cli", "framework", "interactive shell", "prompt_toolkit", "commands", "argparse", "click", "typer"]
 ---
 
-## Setting up
+Build CLIs the way you *wish* every CLI was built: clean command routes, strong typing, an interactive shell out of the box, and quality-of-life features that make your tool feel like a real product.
 
-Get your documentation site up and running in minutes.
+<Tip>
+Run your tool with **no args** to drop into Runegraft’s interactive shell. You still get the normal “one-shot CLI” behavior when you pass a command.
+</Tip>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<Columns cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Install, create your first CLI, and ship a polished entrypoint.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Command Routes" icon="route" href="/concepts/command-routes">
+    Flask-like routes for CLIs: <code>install &lt;url:url&gt;</code>, types, and defaults.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Interactive Shell" icon="terminal" href="/concepts/shell">
+    Completion, history, aliases, <code>source</code> scripts, and more.
   </Card>
 </Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<Columns cols={3}>
+  <Card title="Options & Flags" icon="sliders" href="/concepts/options">
+    Typed options with nice help text, short/long forms, and defaults.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Type Converters" icon="wand-2" href="/concepts/types">
+    Built-ins like <code>int</code>, <code>bool</code>, <code>url</code>, <code>json</code>, <code>uuid</code>, and custom converters.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Recipes" icon="book-open" href="/recipes">
+    Real-world patterns: installers, git-like subcommands, and task runners.
   </Card>
 </Columns>
 
-## Need inspiration?
+---
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Install in one command
+
+```bash
+pip install runegraft
+```
+
+<Tip>Prefer editable installs while developing your CLI? Clone the repo and run <code>pip install -e .</code>.</Tip>
+
+## Sneak peek
+
+<CodeGroup>
+```bash normal-cli
+$ runegraft install https://example.com/pkg.zip --optional-flag 3
+Installing from https://example.com/pkg.zip (optional_flag=3)
+```
+
+```bash interactive-shell
+$ runegraft
+runegraft> help
+runegraft> install https://example.com/pkg.zip -f 3
+runegraft> alias set i "install -f 3"
+runegraft> i https://example.com/pkg.zip
+runegraft> history show
+runegraft> exit
+```
+</CodeGroup>
+
+## Where to start
+
+<Steps>
+  <Step title="Quickstart">
+    Install Runegraft and ship your first command in minutes in the <a href="/quickstart">Quickstart</a>.
+  </Step>
+  <Step title="Command routes">
+    See how Flask-like routes power typed arguments in <a href="/concepts/command-routes">Command Routes</a>.
+  </Step>
+  <Step title="Live shell">
+    Explore completion, history, and scripts in <a href="/concepts/shell">Interactive Shell</a>.
+  </Step>
+  <Step title="Polish the UX">
+    Add flags, converters, and real-world patterns in <a href="/concepts/options">Options & Flags</a> and <a href="/concepts/types">Type Converters</a>.
+  </Step>
+  <Step title="Copy-paste patterns">
+    Grab ready-to-use snippets in <a href="/recipes">Recipes</a>.
+  </Step>
+</Steps>

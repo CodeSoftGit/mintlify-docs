@@ -1,0 +1,49 @@
+---
+title: "Interactive Shell"
+description: "Runegraft ships with a polished REPL for your CLI—completion, history, aliases, and scripts included."
+keywords: ["runegraft shell", "interactive cli", "python repl cli", "cli autocomplete", "runegraft history aliases"]
+sidebarTitle: "Interactive Shell"
+---
+
+Running `runegraft` with no args drops you into a shell that feels like a real tool, not a demo prompt.
+
+## Why use the shell?
+
+- **Tab + fuzzy completion** for commands, subcommands, and options.
+- **Persistent history** so your shortcuts stick between sessions.
+- **Built-ins** you expect: `help`, `exit`, `history`, `alias`, `source`, `cd`, `pwd`, and `!` for running system commands.
+- **Scripts via `source`** to automate repetitive workflows.
+
+## Typical session
+
+<CodeGroup>
+```bash interactive
+$ runegraft
+runegraft> help
+runegraft> install https://example.com/pkg.zip -f 3
+runegraft> alias set i "install -f 3"
+runegraft> i https://example.com/pkg.zip
+runegraft> history show
+runegraft> exit
+```
+</CodeGroup>
+
+<Tip>Aliases are great for long option sets. Pair them with `source ./team-setup.rg` to script team defaults.</Tip>
+
+## Making your shell the default
+
+If you want `runegraft` to open the shell when no arguments are provided, wire your root handler to return `cli.shell()`:
+
+```python
+from runegraft import CLI
+
+cli = CLI("runegraft")
+
+@cli.root
+def _root():
+    return cli.shell()
+```
+
+## Troubleshooting commands
+
+Use `history show` to replay recent commands, and tap `!` to run system commands without leaving the REPL. The shell echoes validation errors with the same helpful formatting as one-shot mode, so you can iterate quickly.

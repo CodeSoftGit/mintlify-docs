@@ -1,0 +1,51 @@
+---
+title: "Type Converters"
+description: "Validate and convert arguments before your command logic runs."
+keywords: ["runegraft types", "cli type converters", "python argument validation", "cli input parsing", "custom cli types"]
+sidebarTitle: "Type Converters"
+---
+
+Runegraft converts user input into typed Python objects automatically. Route placeholders and option annotations describe what the user should pass and ensure the CLI fails fast with helpful errors.
+
+## Built-in converters
+
+You can reference these in route patterns (e.g., `<url:url>`) or via type hints:
+
+- `str`, `int`, `float`, `bool`
+- `url` for HTTP/HTTPS URLs
+- `uuid` for UUID strings
+- `json` for JSON objects/arrays (parsed into Python types)
+
+## Custom converters
+
+Define your own converter when you need stricter rules or domain-specific validation:
+
+```python
+from runegraft import CLI, opt, ConverterError
+
+cli = CLI("demo")
+
+def port(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ConverterError("Port must be an integer") from exc
+    if not (1 <= parsed <= 65535):
+        raise ConverterError("Port must be between 1 and 65535")
+    return parsed
+
+@cli.command("serve <port:port>")
+def serve(
+    port: int,
+    host: str = opt("--host", default="127.0.0.1"),
+):
+    print(f"Serving on {host}:{port}")
+```
+
+Attach your converter to a placeholder (`<port:port>`) and annotate the parameter to keep type checkers happy.
+
+## Validation experience
+
+- Errors surface before your function runs, with messages that include the expected type.
+- Help text shows converter names so users know what each argument expects.
+- Combine converters with [Options & Flags](/concepts/options) to accept structured input everywhere.

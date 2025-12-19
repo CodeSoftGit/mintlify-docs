@@ -1,0 +1,48 @@
+---
+title: "Options & Flags"
+description: "Add polished flags with defaults, choices, and help text without writing a parser."
+keywords: ["runegraft options", "cli flags python", "command line defaults", "arg parsing runegraft", "cli help text"]
+sidebarTitle: "Options & Flags"
+---
+
+Options in Runegraft are declared with the `opt` helper. They stay close to your function signatures, so type hints and defaults map directly to your CLI help text.
+
+## Adding options
+
+```python
+from runegraft import CLI, opt
+
+cli = CLI("demo")
+
+@cli.command("deploy <env:str>")
+def deploy(
+    env: str,
+    dry_run: bool = opt("--dry-run", "-n", default=False, help="Print actions without executing"),
+    region: str = opt("--region", "-r", default="us-east-1", help="Deployment region"),
+    retries: int = opt("--retries", default=2, help="Retry failed steps"),
+):
+    ...
+```
+
+- Short and long flags are defined together: `opt("--dry-run", "-n", default=False, ...)`.
+- Defaults show up in generated help output automatically.
+- Type hints (`bool`, `str`, `int`, etc.) are enforced and reflected in the usage string.
+
+## Choices and validation
+
+Provide a set of allowed values to restrict input:
+
+```python
+@cli.command("publish")
+def publish(
+    channel: str = opt("--channel", choices=["alpha", "beta", "stable"], default="beta", help="Release channel"),
+    notes: str = opt("--notes", help="Optional release notes"),
+):
+    ...
+```
+
+When a user passes an invalid value, Runegraft prints a clear error and shows the valid choices.
+
+## Pairing with routes
+
+Options layer cleanly on top of your route patterns. Keep positional arguments in the route (e.g., `<env:str>`) and reserve options for optional behavior. Combine options with [Type Converters](/concepts/types) to accept richer input like URLs or JSON blobs.

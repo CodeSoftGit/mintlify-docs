@@ -3,30 +3,56 @@
   "theme": "mint",
   "name": "Runegraft",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#F97316",
+    "light": "#FDBA74",
+    "dark": "#EA580C"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Welcome!",
         "groups": [
           {
             "group": "Overview",
             "pages": [
-              "index",
+              "index"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Quickstart",
+            "pages": [
               "quickstart"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Concepts",
+        "groups": [
           {
-            "group": "Runegraft basics",
+            "group": "Core ideas",
             "pages": [
-              "guides/getting-started",
-              "guides/interactive-shell",
-              "guides/building-commands",
-              "guides/testing-cli"
+              "concepts/command-routes",
+              "concepts/shell",
+              "concepts/options",
+              "concepts/types"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Recipes",
+        "groups": [
+          {
+            "group": "Patterns",
+            "pages": [
+              "recipes"
             ]
           }
         ]
@@ -46,18 +72,6 @@
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
     }
   },
   "logo": {
@@ -67,14 +81,14 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "GitHub",
+        "href": "https://github.com/CodeSoftGit/runegraft"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "See PyPI",
+      "href": "https://pypi.org/project/runegraft/"
     }
   },
   "contextual": {
